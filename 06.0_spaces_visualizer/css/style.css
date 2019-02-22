@@ -1,0 +1,32 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0px;
+}
+
+#_canvas_ {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+#_controls_ {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: grid;
+	grid-template-columns: 1fr 2fr 1fr;
+	width: 500px;
+}
+
+#_space-name_ {
+	color: #ffffff;
+	font-size: 32px;
+	text-align: center;
+	margin: 0px;
+}
