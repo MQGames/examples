@@ -89,8 +89,6 @@ const isGlobal = newCheck(function (g) {
 	return g === global;
 });
 
-window.setTimeout(start);
-
 let time = 0.0;
 
 function start () {

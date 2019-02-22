@@ -24,10 +24,6 @@ const FRAGMENT_SHADER_SOURCE = `
 	}
 `;
 
-// Because JS will run as soon as you include it in your HTML, just wait a frame before we start doing anything.
-// There are other ways (defer="defer", etc), but they lead to problems of their own.
-window.setTimeout(start);
-
 function start () {
 	// Setup context
 	const canvas = document.getElementById("_canvas_");

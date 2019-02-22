@@ -1,7 +1,5 @@
 "use strict";
 
-window.setTimeout(start);
-
 function start () {
 	test("hello");
 

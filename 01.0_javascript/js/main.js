@@ -12,10 +12,6 @@ console.log("Hello! I'm out in the open!");
 // Use this space to define global variables and constants.
 const DEFAULT_VALUE = 3.0;
 
-// Because JS will run as soon as you include it in your HTML, just wait a frame before we start doing anything.
-// There are other ways (defer="defer", etc), but they lead to problems of their own.
-window.setTimeout(start);
-
 function start () {
 	printToConsole("testing 1 2 3");
 
