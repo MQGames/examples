@@ -13,66 +13,66 @@ console.log("Hello! I'm out in the open!");
 const DEFAULT_VALUE = 3.0;
 
 function start () {
-	printToConsole("testing 1 2 3");
+    printToConsole("testing 1 2 3");
 
-	// I'm a constant, I can't be re-assigned.
-	const x = 10;
-	// x = 2; // Error!
+    // I'm a constant, I can't be re-assigned.
+    const x = 10;
+    // x = 2; // Error!
 
-	// I'm a normal variable, I can be re-assigned.
-	let y = 3;
-	y = 6;
+    // I'm a normal variable, I can be re-assigned.
+    let y = 3;
+    y = 6;
 
-	// Use const as frequently as you can. Try to only use let if you need to.
+    // Use const as frequently as you can. Try to only use let if you need to.
 
-	// Usual types
-	const b = true;   // Boolean
-	const s = "woah"; // String
-	const n = 3.6;    // Number (Everything is floating point)
+    // Usual types
+    const b = true;   // Boolean
+    const s = "woah"; // String
+    const n = 3.6;    // Number (Everything is floating point)
 
-	const tilly = new Stuff("Tilly", 100.0);
-	const borris = new Stuff("Borris", 65.0);
-	const orangeDoom = new Stuff("Orange Doom", 100.0);
+    const tilly = new Stuff("Tilly", 100.0);
+    const borris = new Stuff("Borris", 65.0);
+    const orangeDoom = new Stuff("Orange Doom", 100.0);
 
-	tilly.print();
+    tilly.print();
 
-	Stuff.compare(tilly, borris);
-	Stuff.compare(tilly, orangeDoom);
+    Stuff.compare(tilly, borris);
+    Stuff.compare(tilly, orangeDoom);
 };
 
 function printToConsole (message) {
-	console.log("I'm inside the printToConsole function!");
-	console.log("Your message: " + message + ".");
-	console.error("I'm an error. I give a stack trace (VERY USEFUL FOR DEBUGGING). Use me where you think things might go wrong.");
+    console.log("I'm inside the printToConsole function!");
+    console.log("Your message: " + message + ".");
+    console.error("I'm an error. I give a stack trace (VERY USEFUL FOR DEBUGGING). Use me where you think things might go wrong.");
 };
 
 // Creating "classes".
 class Stuff {
 
-	// Constructor is special keyword.
-	constructor (name, size) {
-		// Use this keyword to assign to object variables.
-		this.name = name;
-		this.size = size;
-	}
+    // Constructor is special keyword.
+    constructor (name, size) {
+        // Use this keyword to assign to object variables.
+        this.name = name;
+        this.size = size;
+    }
 
-	// Normal methods.
-	print () {
-		const text = "This is a big pile of stuff named " + this.name + ". " + this.name + " is rather big at " + this.size + " metric tonnes.";
-		console.log(text);
-	}
+    // Normal methods.
+    print () {
+        const text = "This is a big pile of stuff named " + this.name + ". " + this.name + " is rather big at " + this.size + " metric tonnes.";
+        console.log(text);
+    }
 
-	// Static methods.
-	static compare (a, b) {
-		// Regular if.
-		// Use tripple equals to make sure they are also of the same type. Never use double equals!
-		if (a.size === b.size) {
-			console.log("The piles of stuff " + a.name + " and " + b.name + " are exactly the same size.");
-		}
-		else {
-			// Inline (terneray) if.
-			const bigger = (a.size > b.size) ? a : b;
-			console.log("Out of the piles of stuff " + a.name + " and " + b.name + ", " + bigger.name + " is the biggest at " + bigger.size + " metric tonnes.");
-		}
-	}
+    // Static methods.
+    static compare (a, b) {
+        // Regular if.
+        // Use tripple equals to make sure they are also of the same type. Never use double equals!
+        if (a.size === b.size) {
+            console.log("The piles of stuff " + a.name + " and " + b.name + " are exactly the same size.");
+        }
+        else {
+            // Inline (terneray) if.
+            const bigger = (a.size > b.size) ? a : b;
+            console.log("Out of the piles of stuff " + a.name + " and " + b.name + ", " + bigger.name + " is the biggest at " + bigger.size + " metric tonnes.");
+        }
+    }
 }

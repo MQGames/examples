@@ -1,37 +1,37 @@
 <html charset="utf-8">
-	<head>
-		<title>Camera Panning</title>
+    <head>
+        <title>Camera Panning</title>
 
-		<!-- Stuff to make this work nice in modern browsers and mobile browsers -->
-		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
-		<meta content="utf-8" http-equiv="encoding">
-		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <!-- Stuff to make this work nice in modern browsers and mobile browsers -->
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-		<!-- Link to the CSS so we can style the HTML -->
-		<link rel="stylesheet" href="css/style.css"/>
+        <!-- Link to the CSS so we can style the HTML -->
+        <link rel="stylesheet" href="css/style.css"/>
 
-		<!-- List your script files here -->
-		<script src="js/debugging.js"></script>
-		<script src="js/main.js"></script>
-		<script src="js/util.js"></script>
-	</head>
-	<body>
-		<canvas id="_canvas_"></canvas>
-		<div id="_controls_">
-			<div class="columns2">
-				<p>Zoom</p>
-				<input id="_zoom_" type="range" min="0.2" max="2.0" step="any">
-			</div>
-			<div class="columns2">
-				<p>X</p>
-				<input id="_x_" type="range" min="-1.0" max="1.0" step="any">
-			</div>
-			<div class="columns2">
-				<p>Y</p>
-				<input id="_y_" type="range" min="-1.0" max="1.0" step="any">
-			</div>
-		</div>
-		<!-- Start your JavaScript with the last element of your HTML body -->
-		<script type="text/javascript">start();</script>
-	</body>
+        <!-- List your script files here -->
+        <script src="js/debugging.js"></script>
+        <script src="js/main.js"></script>
+        <script src="js/util.js"></script>
+    </head>
+    <body>
+        <canvas id="_canvas_"></canvas>
+        <div id="_controls_">
+            <div class="columns2">
+                <p>Zoom</p>
+                <input id="_zoom_" type="range" min="0.2" max="2.0" step="any">
+            </div>
+            <div class="columns2">
+                <p>X</p>
+                <input id="_x_" type="range" min="-1.0" max="1.0" step="any">
+            </div>
+            <div class="columns2">
+                <p>Y</p>
+                <input id="_y_" type="range" min="-1.0" max="1.0" step="any">
+            </div>
+        </div>
+        <!-- Start your JavaScript with the last element of your HTML body -->
+        <script type="text/javascript">start();</script>
+    </body>
 </html>
