@@ -9,10 +9,10 @@
 "use strict";
 
 const VERTEX_SHADER_SOURCE = `
-    attribute vec4 aPosition;
+    attribute vec4 a_position;
 
     void main() {
-        gl_Position = aPosition;
+        gl_Position = a_position;
     }
 `;
 
@@ -37,7 +37,7 @@ function start () {
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER_SOURCE);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
     const program = createProgram(gl, vertexShader, fragmentShader);
-    const positionAttributeLocation = gl.getAttribLocation(program, "aPosition");
+    const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
 
     // Setup vertex position buffer
     const positions = [
