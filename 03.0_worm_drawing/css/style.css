@@ -16,18 +16,13 @@ body {
 }
 
 #_controls_ {
-    position: absolute;
-    left: 0.0;
-    top: 0.0;
-}
-
-.columns2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+	position: absolute;
+	left: 0px;
+	top: 0px;
 }
 
 p {
-    color: #ffffff;
-    text-align: center;
-    font-size: 32px;
+	color: #ffffff;
+	text-align: center;
+	font-size: 32px;
 }

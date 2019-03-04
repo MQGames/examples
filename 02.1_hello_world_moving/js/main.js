@@ -9,10 +9,12 @@
 "use strict";
 
 const VERTEX_SHADER_SOURCE = `
-    attribute vec4 aPosition;
+    attribute vec2 a_position;
+
+    uniform vec2 u_translation;
 
     void main() {
-        gl_Position = aPosition;
+        gl_Position = vec4(a_position + u_translation, 0.0, 1.0);
     }
 `;
 
@@ -24,9 +26,7 @@ const FRAGMENT_SHADER_SOURCE = `
     }
 `;
 
-// Because JS will run as soon as you include it in your HTML, just wait a frame before we start doing anything.
-// There are other ways (defer="defer", etc), but they lead to problems of their own.
-window.setTimeout(start);
+const MOVE_SPEED = 0.5;
 
 function start () {
     // Setup context
@@ -41,7 +41,69 @@ function start () {
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER_SOURCE);
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER_SOURCE);
     const program = createProgram(gl, vertexShader, fragmentShader);
-    const positionAttributeLocation = gl.getAttribLocation(program, "aPosition");
+    const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+    const translationUniformLocation = gl.getUniformLocation(program, "u_translation");
+    gl.useProgram(program);
+
+    let translationX = 0.0;
+    let translationY = 0.0;
+
+    let leftPresed = false;
+    let rightPressed = false;
+    let downPressed = false;
+    let upPressed = false;
+
+    // User input
+    {
+        document.addEventListener("keydown", function (event) {
+            switch (event.key) {
+                case "ArrowLeft": {
+                        leftPresed = true;
+                    }
+                    break;
+
+                case "ArrowRight": {
+                        rightPressed = true;
+                    }
+                    break;
+
+                case "ArrowDown": {
+                        downPressed = true;
+                    }
+                    break;
+
+                case "ArrowUp": {
+                        upPressed = true;
+                    }
+                    break;
+            }
+        });
+
+        document.addEventListener("keyup", function (event) {
+            switch (event.key) {
+                case "ArrowLeft": {
+                        leftPresed = false;
+                    }
+                    break;
+
+                case "ArrowRight": {
+                        rightPressed = false;
+                    }
+                    break;
+
+                case "ArrowDown": {
+                        downPressed = false;
+                    }
+                    break;
+
+                case "ArrowUp": {
+                        upPressed = false;
+                    }
+                    break;
+            }
+        });
+
+    }
 
     // Setup vertex position buffer
     const positions = [
@@ -53,9 +115,6 @@ function start () {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
-    // Specify which shader to use
-    gl.useProgram(program);
-
     // Prepare position buffer
     {
         const size = 2;          // 2 components per iteration
@@ -63,7 +122,6 @@ function start () {
         const normalize = false; // don't normalize the data
         const stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
         const offset = 0;        // start at the beginning of the buffer
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
         gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
         gl.enableVertexAttribArray(positionAttributeLocation);
     }
@@ -76,6 +134,8 @@ function start () {
 
         gl.clear(gl.COLOR_BUFFER_BIT);
 
+        gl.uniform2fv(translationUniformLocation, [translationX, translationY]);
+
         // Draw the triangle
         {
             const primitiveType = gl.TRIANGLES;
@@ -85,9 +145,29 @@ function start () {
         }
     };
 
-    const animate = function () {
+    let lastSeconds = 0;
+    const animate = function (milliseconds) {
         window.requestAnimationFrame(animate);
+
+        const seconds = milliseconds / 1000;
+        const delta = seconds - lastSeconds;
+
+        if (leftPresed) {
+            translationX -= MOVE_SPEED * delta;
+        }
+        if (rightPressed) {
+            translationX += MOVE_SPEED * delta;
+        }
+        if (downPressed) {
+            translationY -= MOVE_SPEED * delta;
+        }
+        if (upPressed) {
+            translationY += MOVE_SPEED * delta;
+        }
+
         render();
+
+        lastSeconds = seconds;
     };
 
     animate();

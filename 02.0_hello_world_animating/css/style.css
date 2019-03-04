@@ -14,3 +14,15 @@ body {
     height: 100%;
     overflow: hidden;
 }
+
+#_controls_ {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+
+p {
+	color: #ffffff;
+	text-align: center;
+	font-size: 32px;
+}
