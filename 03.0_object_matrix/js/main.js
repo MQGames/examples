@@ -1,10 +1,3 @@
-
-/*
-
-Click and drag to move the camera.
-
-*/
-
 "use strict";
 
 const VERTEX_SHADER_SOURCE = `
