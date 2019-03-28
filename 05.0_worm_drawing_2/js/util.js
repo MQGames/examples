@@ -59,16 +59,3 @@ class UtilPrivate {
         return shader;
     }
 }
-
-function generateColour (t) {
-    const r = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.00));
-    const g = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.33));
-    const b = 0.5 + 0.5 * Math.cos(2 * Math.PI * (1.0 * t + 0.67));
-
-    return {
-        r: r,
-        g: g,
-        b: b,
-    };
-}
-
