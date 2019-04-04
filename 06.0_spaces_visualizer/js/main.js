@@ -150,10 +150,15 @@ function start () {
     const boxGeometry = generateCubeGeometry(gl, 1.0);
     const boxGeometryW = generateCubeGeometry(gl, 1.0);
 
+    const gridGeometry = generateGridGeometry(gl, 10.0, 10);
+
     const rotZ = glMatrix.mat4.create();
     glMatrix.mat4.fromZRotation(rotZ, Math.PI / 2.0);
     const rotY = glMatrix.mat4.create();
     glMatrix.mat4.fromYRotation(rotY, -Math.PI / 2.0);
+
+    const gridMatrix = glMatrix.mat4.create();
+    glMatrix.mat4.fromTranslation(gridMatrix, [0.0, -0.001, 0.0]);
 
     const xAxis = {
         geometry: lineGeometry,
@@ -177,6 +182,14 @@ function start () {
         matrix: rotY,
         locked: true,
         colour: [0.0, 0.0, 1.0],
+        morph: false,
+    };
+    const grid = {
+        geometry: gridGeometry,
+        programInfo: programInfo,
+        matrix: gridMatrix,
+        locked: true,
+        colour: [0.3, 0.3, 0.3],
         morph: false,
     };
 
@@ -205,7 +218,6 @@ function start () {
     const topBoxMatrix = glMatrix.mat4.create();
     glMatrix.mat4.fromTranslation(topBoxMatrix, [0.0, 0.6, 0.0]);
     glMatrix.mat4.multiply(topBoxMatrix, topBoxMatrix, smallBoxMatrix);
-    //topBoxMatrix[15] = 2.0;
 
     const bigBoxMatrix = glMatrix.mat4.create();
     glMatrix.mat4.fromScaling(bigBoxMatrix, [4.0, 4.0, 4.0]);
@@ -245,7 +257,7 @@ function start () {
 
     global.gl = gl;
     global.canvas = canvas;
-    global.objects = [xAxis, yAxis, zAxis, box, topBox, bigBox, frustum];
+    global.objects = [xAxis, yAxis, zAxis, grid, box, topBox, bigBox, frustum];
     global.spinCube = box;
 
     animate(0);
@@ -256,9 +268,9 @@ function targetToName (target) {
         case Steps.LOCAL:
             return "Local";
         case Steps.WORLD:
-            return "World";
+            return "World/Model";
         case Steps.VIEW:
-            return "View/Camera";
+            return "Camera/View";
         case Steps.PROJECTION:
             return "Projection";
         case Steps.CLIP:
@@ -415,14 +427,63 @@ function generateFrustumGeometry (gl, nearSize, near, far) {
         stride: 0,
         offset: 0,
     };
-};
+}
 
-function animate (t) {
+function generateGridGeometry (gl, size, numDivisions) {
+    check(isContext(gl), isNumber(size, numDivisions));
+
+    const positions = [];
+
+    const halfSize = size / 2.0;
+
+    const total = numDivisions * 2 + 1;
+    for (let i = 0; i < total; i++) {
+        const t = (i / (total - 1)) - 0.5;
+        const value = t * size;
+
+        // X axis
+        positions.push(-halfSize);
+        positions.push(0.0);
+        positions.push(value);
+        positions.push(halfSize);
+        positions.push(0.0);
+        positions.push(value);
+
+        // Z axis
+        positions.push(value);
+        positions.push(0.0);
+        positions.push(-halfSize);
+        positions.push(value);
+        positions.push(0.0);
+        positions.push(halfSize);
+    }
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    return {
+        buffer: buffer,
+
+        primitive: gl.LINES,
+
+        startIndex: 0,
+        endIndex: positions.length / 3,
+
+        size: 3,
+        type: gl.FLOAT,
+        normalize: false,
+        stride: 0,
+        offset: 0,
+    };
+}
+
+function animate (milliseconds) {
     window.requestAnimationFrame(animate);
 
     resizeCanvas(global.canvas);
 
-    const seconds = t / 1000;
+    const seconds = milliseconds / 1000;
 
     const deltaTime = seconds - global.lastTime;
 
@@ -436,7 +497,7 @@ function animate (t) {
 
     glMatrix.mat4.fromYRotation(global.spinCube.matrix, seconds * SPIN_SPEED);
 
-    render(global.gl, global.objects, t / 1000.0, global.exampleView, global.exampleProjection, global.currentLerp);
+    render(global.gl, global.objects, seconds, global.exampleView, global.exampleProjection, global.currentLerp);
 
     global.lastTime = seconds;
 }
