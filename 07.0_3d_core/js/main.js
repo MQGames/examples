@@ -1,6 +1,6 @@
 "use strict";
 
-const VERTEX_SHADER_SOURCE = `
+const BASIC_VERTEX = `
     attribute vec3 a_position;
 
     uniform mat4 u_world;
@@ -12,13 +12,41 @@ const VERTEX_SHADER_SOURCE = `
     }
 `;
 
-const FRAGMENT_SHADER_SOURCE = `
+const BASIC_FRAGMENT = `
     precision highp float;
 
     uniform vec3 u_colour;
 
     void main () {
         gl_FragColor = vec4(u_colour, 1.0);
+    }
+`;
+
+const COLOURED_VERTEX = `
+    attribute vec3 a_position;
+    attribute vec3 a_colour;
+
+    uniform mat4 u_world;
+    uniform mat4 u_camera;
+    uniform mat4 u_projection;
+
+    varying vec3 v_colour;
+
+    void main () {
+        v_colour = a_colour;
+        gl_Position = u_projection * u_camera * u_world * vec4(a_position, 1.0);
+    }
+`;
+
+const COLOURED_FRAGMENT = `
+    precision highp float;
+
+    uniform vec4 u_colour;
+
+    varying vec3 v_colour;
+
+    void main () {
+        gl_FragColor = vec4(u_colour.rgb * v_colour, u_colour.a);
     }
 `;
 
@@ -31,64 +59,70 @@ function start () {
         return;
     }
 
-    const program = Util.createProgram(gl, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE);
-    gl.useProgram(program);
+    // Grid
+    const gridUniformValues = [
+        { name: "u_colour", value: [0.4, 0.4, 0.4] },
+    ];
+    const gridGeometry = generateGridGeometry(gl, 10.0, 10);
+    const gridGameObject = new GameObject(gl, gridGeometry, BASIC_VERTEX, BASIC_FRAGMENT, gridUniformValues, false);
 
-    const postionAttribute = gl.getAttribLocation(program, "a_position");
-    const worldUniform = gl.getUniformLocation(program, "u_world");
-    const cameraUniform = gl.getUniformLocation(program, "u_camera");
-    const projectionUniform = gl.getUniformLocation(program, "u_projection");
-    const colourUniform = gl.getUniformLocation(program, "u_colour");
+    // Cube A
+    const cubeUniformValuesA = [
+        { name: "u_colour", value: [1.0, 1.0, 1.0, 1.0] },
+    ];
+    const cubeGeometryA = generateCubeSolidGeometry(gl, true);
+    const cubeGameObjectA = new GameObject(gl, cubeGeometryA, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesA, false);
+    cubeGameObjectA.position[1] = 0.5;
+    gridGameObject.children.push(cubeGameObjectA);
 
-    gl.enableVertexAttribArray(postionAttribute);
+    // Cube B
+    const cubeUniformValuesB = [
+        { name: "u_colour", value: [1.0, 0.0, 0.0, 1.0] },
+    ];
+    const cubeGeometryB = generateCubeSolidGeometry(gl, true);
+    const cubeGameObjectB = new GameObject(gl, cubeGeometryB, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesB, false);
+    cubeGameObjectB.position[0] = 1.5;
+    cubeGameObjectB.position[1] = 0.5;
+    gridGameObject.children.push(cubeGameObjectB);
 
-    const squarePositions = new Float32Array([
-        -1, 0, -1,
-        -1, 0,  1,
+    // Cube C
+    const cubeUniformValuesC = [
+        { name: "u_colour", value: [0.0, 1.0, 0.0, 1.0] },
+    ];
+    const cubeGeometryC = generateCubeSolidGeometry(gl, true);
+    const cubeGameObjectC = new GameObject(gl, cubeGeometryC, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesC, false);
+    cubeGameObjectC.position[0] = -1.5;
+    cubeGameObjectC.position[1] = 0.5;
+    gridGameObject.children.push(cubeGameObjectC);
 
-        -1, 0,  1,
-         1, 0,  1,
+    /*
+    // Cube D
+    const cubeUniformValuesD = [
+        { name: "u_colour", value: [0.0, 1.0, 0.5, 0.5] },
+    ];
+    const cubeGeometryD = generateCubeSolidGeometry(gl, false);
+    const cubeGameObjectD = new GameObject(gl, cubeGeometryD, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesD, true);
+    cubeGameObjectD.position[1] = 0.5;
+    cubeGameObjectD.position[2] = -1.5;
+    gridGameObject.children.push(cubeGameObjectD);
 
-         1, 0,  1,
-         1, 0, -1,
+    // Cube E
+    const cubeUniformValuesE = [
+        { name: "u_colour", value: [1.0, 1.0, 0.0, 0.5] },
+    ];
+    const cubeGeometryE = generateCubeSolidGeometry(gl, false);
+    const cubeGameObjectE = new GameObject(gl, cubeGeometryE, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesE, true);
+    cubeGameObjectE.position[1] = 0.5;
+    cubeGameObjectE.position[2] = 1.5;
+    gridGameObject.children.push(cubeGameObjectE);
+    */
 
-         1, 0, -1,
-        -1, 0, -1,
-    ]);
-    const squareBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, squareBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, squarePositions, gl.STATIC_DRAW);
+    // Setup
+    gl.clearColor(0, 0, 0, 1);
 
-    const uniforms = {
-        world: worldUniform,
-        colour: colourUniform,
-    };
-
-    const geometry = {
-        buffer: squareBuffer,
-        start: 0,
-        numPoints: squarePositions.length / 3,
-        attribute: postionAttribute,
-        size: 3,
-        type: gl.FLOAT,
-        normalize: false,
-        stride: 0,
-        offset: 0,
-        primitive: gl.LINES,
-    };
-
-    const squareGameObject = new GameObject(geometry);
-    squareGameObject.colour[0] = 0;
-    squareGameObject.colour[1] = 1;
-    squareGameObject.colour[2] = 1;
-
-    const square2GameObject = new GameObject(geometry);
-    square2GameObject.colour[0] = 1;
-    square2GameObject.colour[1] = 0;
-    square2GameObject.colour[2] = 1;
-    square2GameObject.position[0] = 3;
-
-    squareGameObject.children.push(square2GameObject);
+    //gl.enable(gl.CULL_FACE);
+    //gl.cullFace(gl.FRONT);
+    //gl.enable(gl.DEPTH_TEST);
 
     const render = function (t) {
         Util.resizeCanvas(canvas);
@@ -97,59 +131,30 @@ function start () {
 
         const projection = glMatrix.mat4.create();
         glMatrix.mat4.perspective(projection, Math.PI / 2.0, aspect, 0.1, 100.0);
-        gl.uniformMatrix4fv(projectionUniform, false, projection);
+
         const camera = glMatrix.mat4.create();
-        glMatrix.mat4.lookAt(camera, [4, 2, 3], [0, 0, 0], [0, 1, 0]);
-        gl.uniformMatrix4fv(cameraUniform, false, camera);
+        glMatrix.mat4.lookAt(camera, [Math.cos(t * 0.2) * 2.0, 2, Math.sin(t * 0.2) * 2.0], [0, 0, 0], [0, 1, 0]);
+
+        const renderInfo = {
+            projection: projection,
+            camera: camera,
+        };
 
         gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        squareGameObject.rotation[1] = t;
-        square2GameObject.rotation[1] = t;
+        cubeGameObjectA.rotation[1] = t;
 
-        squareGameObject.draw(gl, glMatrix.mat4.create(), uniforms);
+        // Opaque
+        //gl.depthMask(true);
+        //gl.disable(gl.BLEND);
+        gridGameObject.draw(gl, glMatrix.mat4.create(), renderInfo, false);
 
-        /*
-        // Square
-        {
-            const world = glMatrix.mat4.create();
-            gl.uniformMatrix4fv(worldUniform, false, world);
-
-            gl.uniform3fv(colourUniform, [1, 0, 1]);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, squareBuffer);
-            gl.vertexAttribPointer(postionAttribute, 3, gl.FLOAT, false, 0, 0);
-            gl.drawArrays(gl.LINES, 0, squarePositions.length / 3);
-        }
-
-        // Square
-        {
-            const world = glMatrix.mat4.create();
-            glMatrix.mat4.fromTranslation(world, [2, 0, 0]);
-            gl.uniformMatrix4fv(worldUniform, false, world);
-
-            gl.uniform3fv(colourUniform, [1, 0, 0]);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, squareBuffer);
-            gl.vertexAttribPointer(postionAttribute, 3, gl.FLOAT, false, 0, 0);
-            gl.drawArrays(gl.LINES, 0, squarePositions.length / 3);
-        }
-
-        // Square
-        {
-            const world = glMatrix.mat4.create();
-            glMatrix.mat4.fromTranslation(world, [0, 0, 2]);
-            gl.uniformMatrix4fv(worldUniform, false, world);
-
-            gl.uniform3fv(colourUniform, [0, 1, 0]);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, squareBuffer);
-            gl.vertexAttribPointer(postionAttribute, 3, gl.FLOAT, false, 0, 0);
-            gl.drawArrays(gl.LINES, 0, squarePositions.length / 3);
-        }
-        */
+        // Transparent
+        //gl.depthMask(false);
+        //gl.enable(gl.BLEND);
+        //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gridGameObject.draw(gl, glMatrix.mat4.create(), renderInfo, true);
     };
 
     const animate = function (milliseconds) {
