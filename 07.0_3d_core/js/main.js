@@ -77,6 +77,7 @@ function start () {
     cubeGameObjectA.position[1] = 0.5;
     gridGameObject.children.push(cubeGameObjectA);
 
+    /*
     // Cube B
     const cubeUniformValuesB = [
         { name: "u_colour", value: [1.0, 0.0, 0.0, 1.0] },
@@ -96,6 +97,7 @@ function start () {
     cubeGameObjectC.position[0] = -1.5;
     cubeGameObjectC.position[1] = 0.5;
     gridGameObject.children.push(cubeGameObjectC);
+    */
 
     /*
     // Cube D

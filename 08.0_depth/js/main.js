@@ -54,7 +54,7 @@ function start () {
     // Setup context
     const canvas = document.getElementById("_canvas_");
     const gl = canvas.getContext("webgl", {
-        //antialias: true,
+        antialias: true,
     });
     if (gl === null) {
         window.alert("WebGL not supported!");
@@ -75,6 +75,9 @@ function start () {
     const cubeGeometryA = generateCubeSolidGeometry(gl, true);
     const cubeGameObjectA = new GameObject(gl, cubeGeometryA, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesA, false);
     cubeGameObjectA.position[1] = 0.5;
+    cubeGameObjectA.scale[0] = 2.0;
+    cubeGameObjectA.scale[1] = 1.1;
+    cubeGameObjectA.scale[2] = 2.0;
     gridGameObject.children.push(cubeGameObjectA);
 
     // Cube B
@@ -97,10 +100,9 @@ function start () {
     cubeGameObjectC.position[1] = 0.5;
     gridGameObject.children.push(cubeGameObjectC);
 
-    /*
     // Cube D
     const cubeUniformValuesD = [
-        { name: "u_colour", value: [0.0, 1.0, 0.5, 0.5] },
+        { name: "u_colour", value: [0.0, 0.5, 0.5, 0.5] },
     ];
     const cubeGeometryD = generateCubeSolidGeometry(gl, false);
     const cubeGameObjectD = new GameObject(gl, cubeGeometryD, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesD, true);
@@ -110,21 +112,20 @@ function start () {
 
     // Cube E
     const cubeUniformValuesE = [
-        { name: "u_colour", value: [1.0, 1.0, 0.0, 0.5] },
+        { name: "u_colour", value: [0.5, 0.5, 0.0, 0.5] },
     ];
     const cubeGeometryE = generateCubeSolidGeometry(gl, false);
     const cubeGameObjectE = new GameObject(gl, cubeGeometryE, COLOURED_VERTEX, COLOURED_FRAGMENT, cubeUniformValuesE, true);
     cubeGameObjectE.position[1] = 0.5;
     cubeGameObjectE.position[2] = 1.5;
     gridGameObject.children.push(cubeGameObjectE);
-    */
 
     // Setup
     gl.clearColor(0, 0, 0, 1);
 
-    //gl.enable(gl.CULL_FACE);
-    //gl.cullFace(gl.FRONT);
-    //gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+    gl.enable(gl.DEPTH_TEST);
 
     const render = function (t) {
         Util.resizeCanvas(canvas);
@@ -148,14 +149,14 @@ function start () {
         cubeGameObjectA.rotation[1] = t;
 
         // Opaque
-        //gl.depthMask(true);
-        //gl.disable(gl.BLEND);
+        gl.depthMask(true);
+        gl.disable(gl.BLEND);
         gridGameObject.draw(gl, glMatrix.mat4.create(), renderInfo, false);
 
         // Transparent
-        //gl.depthMask(false);
-        //gl.enable(gl.BLEND);
-        //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.depthMask(false);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gridGameObject.draw(gl, glMatrix.mat4.create(), renderInfo, true);
     };
 
