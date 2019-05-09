@@ -18,6 +18,7 @@ class GameObject {
 
         this.program = Util.createProgram(gl, vertexShaderSource, fragmentShaderSource);
 
+        // Uniforms setup
         this.uniforms = [];
         const numUniforms = gl.getProgramParameter(this.program, gl.ACTIVE_UNIFORMS);
         for (let i = 0; i < numUniforms; i++) {
@@ -31,6 +32,7 @@ class GameObject {
             this.uniforms.push(uniform);
         }
 
+        // Attributes setup
         this.attributes = [];
         const numAttibutes = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
         for (let i = 0; i < numAttibutes; i++) {
@@ -46,6 +48,8 @@ class GameObject {
     }
 
     getUniformByName (name) {
+        check(isString(name));
+
         for (let i = 0; i < this.uniforms.length; i++) {
             const uniform = this.uniforms[i];
             if (uniform.name === name) {
@@ -58,6 +62,8 @@ class GameObject {
     }
 
     getAttibuteByName (name) {
+        check(isString(name));
+
         for (let i = 0; i < this.attributes.length; i++) {
             const attribute = this.attributes[i];
             if (attribute.name === name) {
@@ -70,6 +76,9 @@ class GameObject {
     }
 
     draw (gl, parentMatrix, renderInfo, transparentDrawing) {
+        check(isContext(gl), isMat4(parentMatrix), isObject(renderInfo), isBoolean(transparentDrawing));
+
+        // Compute matrix for this gameObject
         const local = glMatrix.mat4.create();
         glMatrix.mat4.fromTranslation(local, this.position);
         glMatrix.mat4.rotateX(local, local, this.rotation[0]);
@@ -78,31 +87,58 @@ class GameObject {
         glMatrix.mat4.scale(local, local, this.scale);
         glMatrix.mat4.multiply(local, parentMatrix, local);
 
+        // Determine if we draw ourselves in this pass
         if (transparentDrawing === this.transparent) {
+            // Switch to our program before doing anything else
             gl.useProgram(this.program);
 
-            const projectionUniform = this.getUniformByName("u_projection");
-            gl.uniformMatrix4fv(projectionUniform.pointer, false, renderInfo.projection);
-            const cameraUniform = this.getUniformByName("u_camera");
-            gl.uniformMatrix4fv(cameraUniform.pointer, false, renderInfo.camera);
-            const worldUniform = this.getUniformByName("u_world");
-            gl.uniformMatrix4fv(worldUniform.pointer, false, local);
+            // Projection, Camera, World
+            {
+                const projectionUniform = this.getUniformByName("u_projection");
+                gl.uniformMatrix4fv(projectionUniform.pointer, false, renderInfo.projection);
+                const cameraUniform = this.getUniformByName("u_camera");
+                gl.uniformMatrix4fv(cameraUniform.pointer, false, renderInfo.camera);
+                const worldUniform = this.getUniformByName("u_world");
+                gl.uniformMatrix4fv(worldUniform.pointer, false, local);
+            }
 
+            // Lighting
             const normalUniform = this.getUniformByName("u_normal");
             if (normalUniform !== null) {
+                // Normal matrix
                 if (correct_normals) {
-                    const normal4 = glMatrix.mat4.create();
-                    glMatrix.mat4.invert(normal4, local);
-                    glMatrix.mat4.transpose(normal4, normal4);
-                    const normal3 = glMatrix.mat3.create();
-                    glMatrix.mat3.fromMat4(normal3, normal4);
-                    gl.uniformMatrix3fv(normalUniform.pointer, false, normal3);
+                    //const normal4 = glMatrix.mat4.create();
+                    //glMatrix.mat4.invert(normal4, local);
+                    //glMatrix.mat4.transpose(normal4, normal4);
+                    //const normal3 = glMatrix.mat3.create();
+                    //glMatrix.mat3.fromMat4(normal3, normal4);
+                    //const camera3 = glMatrix.mat3.create();
+                    //glMatrix.mat3.fromMat4(camera3, renderInfo.camera);
+                    //glMatrix.mat3.multiply(normal3, camera3, normal3);
+                    //gl.uniformMatrix3fv(normalUniform.pointer, false, normal3);
                 }
                 else {
                     gl.uniformMatrix3fv(normalUniform.pointer, false, glMatrix.mat3.create());
                 }
+
+                // Light uniforms
+                {
+                    //const lightDirectionUniform = this.getUniformByName("u_lightDirection");
+                    //if (lightDirectionUniform !== null) {
+                    //    gl.uniform3fv(lightDirectionUniform.pointer, renderInfo.lightDirection);
+                    //}
+                    //const lightColourUniform = this.getUniformByName("u_lightColour");
+                    //if (lightColourUniform !== null) {
+                    //    gl.uniform3fv(lightColourUniform.pointer, renderInfo.lightColour);
+                    //}
+                    //const ambientLightUniform = this.getUniformByName("u_ambientLight");
+                    //if (ambientLightUniform !== null) {
+                    //    gl.uniform3fv(ambientLightUniform.pointer, renderInfo.ambientLight);
+                    //}
+                }
             }
 
+            // Other uniforms
             for (let i = 0; i < this.uniformValues.length; i++) {
                 const uniformValue = this.uniformValues[i];
                 const uniform = this.getUniformByName(uniformValue.name);
@@ -120,6 +156,7 @@ class GameObject {
                 }
             }
 
+            // Enable and set up attributes
             for (let i = 0; i < this.geometry.buffers.length; i++)  {
                 const g = this.geometry.buffers[i];
 
@@ -131,8 +168,10 @@ class GameObject {
                 }
             }
 
+            // Draw!
             gl.drawArrays(this.geometry.primitive, this.geometry.startIndex, this.geometry.numVerticies);
 
+            // Disable attributes
             for (let i = 0; i < this.geometry.buffers.length; i++)  {
                 const g = this.geometry.buffers[i];
                 const attribute = this.getAttibuteByName(g.attributeName);
@@ -142,6 +181,7 @@ class GameObject {
             }
         }
 
+        // Draw children
         for (let i = 0; i < this.children.length; i++) {
             const child = this.children[i];
             child.draw(gl, local, renderInfo, transparentDrawing);
