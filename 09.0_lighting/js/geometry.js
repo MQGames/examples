@@ -1,15 +1,48 @@
 "use strict";
 
-/*
-class Geometry {
-    constructor () {
+class GeometryAttribute {
+    constructor (attributeName, pointer, array, size, type, normalize, stride, offset) {
+        check(isString(name), isBuffer(pointer), isFloat32Array(array), isNumber(size, type, stride, offset), isBoolean(normalize));
 
+        this.attributeName = attributeName;
+        this.pointer = pointer;
+        this.array = array;
+        this.size = size;
+        this.type = type;
+        this.normalize = normalize;
+        this.stride = stride;
+        this.offset = offset;
+    }
+}
+const isGeometryAttribute = newCheck(function (g) {
+    return g instanceof GeometryAttribute;
+});
+
+class Geometry {
+    constructor (primitive, startIndex, numVerticies, buffers) {
+        check(isNumber(primitive, startIndex, numVerticies), isArray(buffers));
+
+        this.primitive = primitive;
+        this.startIndex = startIndex;
+        this.numVerticies = numVerticies;
+        this.buffers = buffers;
+    }
+
+    getBufferByAttributeName (attributeName) {
+        for (let i = 0; i < this.buffers.length; i++) {
+            const buffer = this.buffers[i];
+            if (buffer.attributeName === attributeName) {
+                return buffer;
+            }
+        }
+
+        console.error("Unable to find buffer with attribute name: " + attributeName);
+        return null;
     }
 }
 const isGeometry = newCheck(function (g) {
     return g instanceof Geometry;
 });
-*/
 
 function generateCubeGeometry (gl) {
     check(isContext(gl));
@@ -46,26 +79,14 @@ function generateCubeGeometry (gl) {
          0.5,  0.5,  0.5,
     ]);
 
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
 
-    return {
-        primitive: gl.LINES,
-        startIndex: 0,
-        numVerticies: positions.length / 3,
-        buffers: [
-            {
-                attributeName: "a_position",
-                pointer: buffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: false,
-                stride: 0,
-                offset: 0,
-            },
-        ]
-    };
+    const geometryAttributes = [
+        new GeometryAttribute("a_position", positionBuffer, positions, 3, gl.FLOAT, false, 0, 0),
+    ];
+    return new Geometry(gl.LINES, 0, positions.length / 3, geometryAttributes);
 }
 
 function generateCubeSolidGeometry (gl, randomColours) {
@@ -201,40 +222,12 @@ function generateCubeSolidGeometry (gl, randomColours) {
     gl.bindBuffer(gl.ARRAY_BUFFER, colourBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, colours, gl.STATIC_DRAW);
 
-    return {
-        primitive: gl.TRIANGLES,
-        startIndex: 0,
-        numVerticies: positions.length / 3,
-        buffers: [
-            {
-                attributeName: "a_position",
-                pointer: positionBuffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: false,
-                stride: 0,
-                offset: 0,
-            },
-            {
-                attributeName: "a_normal",
-                pointer: normalBuffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: true,
-                stride: 0,
-                offset: 0,
-            },
-            {
-                attributeName: "a_colour",
-                pointer: colourBuffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: false,
-                stride: 0,
-                offset: 0,
-            },
-        ],
-    };
+    const geometryAttributes = [
+        new GeometryAttribute("a_position", positionBuffer, positions, 3, gl.FLOAT, false, 0, 0),
+        new GeometryAttribute("a_normal", normalBuffer, normals, 3, gl.FLOAT, true, 0, 0),
+        new GeometryAttribute("a_colour", colourBuffer, colours, 3, gl.FLOAT, false, 0, 0),
+    ];
+    return new Geometry(gl.TRIANGLES, 0, positions.length / 3, geometryAttributes);
 }
 
 function generateGridGeometry (gl, size, numDivisions) {
@@ -266,26 +259,15 @@ function generateGridGeometry (gl, size, numDivisions) {
         positions.push(halfSize);
     }
 
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    const positionsArray = new Float32Array(positions);
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, positionsArray, gl.STATIC_DRAW);
 
-    return {
-        primitive: gl.LINES,
-        startIndex: 0,
-        numVerticies: positions.length / 3,
-        buffers: [
-            {
-                attributeName: "a_position",
-                pointer: buffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: false,
-                stride: 0,
-                offset: 0,
-            }
-        ]
-    };
+    const geometryAttributes = [
+        new GeometryAttribute("a_position", positionBuffer, positionsArray, 3, gl.FLOAT, false, 0, 0),
+    ];
+    return new Geometry(gl.LINES, 0, positions.length / 3, geometryAttributes);
 }
 
 function generateSphereSolidGeometry (gl, stepsLat, stepsLong, randomColours) {
@@ -300,7 +282,6 @@ function generateSphereSolidGeometry (gl, stepsLat, stepsLong, randomColours) {
     };
 
     const positions = [];
-    const normals = [];
 
     const stepAltitude = Math.PI / stepsLat;
     const stepAzimuth = Math.PI * 2.0 / stepsLong;
@@ -350,9 +331,19 @@ function generateSphereSolidGeometry (gl, stepsLat, stepsLong, randomColours) {
         }
     }
 
+    const positionsArray = new Float32Array(positions);
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, positionsArray, gl.STATIC_DRAW);
+
+    const normals = new Float32Array(positionsArray.length);
+    for (let i = 0; i < positionsArray.length; i++) {
+        normals[i] = positionsArray[i] * 2.0;
+    }
+
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
 
     const colours = new Float32Array(positions.length);
     if (randomColours) {
@@ -370,55 +361,34 @@ function generateSphereSolidGeometry (gl, stepsLat, stepsLong, randomColours) {
     gl.bindBuffer(gl.ARRAY_BUFFER, colourBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, colours, gl.STATIC_DRAW);
 
-    return {
-        primitive: gl.TRIANGLES,
-        startIndex: 0,
-        numVerticies: positions.length / 3,
-        buffers: [
-            {
-                attributeName: "a_position",
-                pointer: positionBuffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: false,
-                stride: 0,
-                offset: 0,
-            },
-            {
-                attributeName: "a_normal",
-                pointer: positionBuffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: true,
-                stride: 0,
-                offset: 0,
-            },
-            {
-                attributeName: "a_colour",
-                pointer: colourBuffer,
-                size: 3,
-                type: gl.FLOAT,
-                normalize: false,
-                stride: 0,
-                offset: 0,
-            },
-        ],
-    };
-
-    /*
-    return {
-        buffer: buffer,
-
-        primitive: gl.TRIANGLES,
-
-        startIndex: 0,
-        endIndex: positions.length / 3,
-
-        numComponents: 3,
-        type: gl.FLOAT,
-        normalize: false,
-        stride: 0,
-        offset: 0,
-    };
-    */
+    const geometryAttributes = [
+        new GeometryAttribute("a_position", positionBuffer, positionsArray, 3, gl.FLOAT, false, 0, 0),
+        new GeometryAttribute("a_normal", positionBuffer, normals, 3, gl.FLOAT, true, 0, 0),
+        new GeometryAttribute("a_colour", colourBuffer, colours, 3, gl.FLOAT, false, 0, 0),
+    ];
+    return new Geometry(gl.TRIANGLES, 0, positions.length / 3, geometryAttributes);
 }
+
+/*
+function generateNormals (inputGeometry) {
+    check(isGeometry(inputGeometry));
+
+    const numVerticies = inputGeometry.numVerticies * 2;
+    const positions = new Float32Array(numVerticies);
+    const normals = new Float32Array(numVerticies);
+
+    const inputPositionBuffer = inputGeometry.getBufferByAttributeName("a_position");
+    const inputNormalBuffer = inputGeometry.getBufferByAttributeName("a_normal");
+    for (let i = 0; i < inputGeometry.numVerticies; i++) {
+        const positionIndex = i * inputPositionBuffer.size;
+        const normalIndex = i * inputNormalBuffer.size;
+
+        // A
+        for (let j = 0; j < inputPositionBuffer.size; j++) {
+            positions[positionIndex * 2 + j] = inputPositionBuffer.array[positionIndex + j];
+        }
+        
+        positions[i * 2 + 1] = p;
+    }
+};
+*/

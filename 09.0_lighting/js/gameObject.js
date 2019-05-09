@@ -2,7 +2,7 @@
 
 class GameObject {
     constructor (gl, geometry, vertexShaderSource, fragmentShaderSource, uniformValues, transparent) {
-        check(isContext(gl), isObject(geometry), isString(vertexShaderSource, fragmentShaderSource), isArray(uniformValues));
+        check(isContext(gl), isGeometry(geometry), isString(vertexShaderSource, fragmentShaderSource), isArray(uniformValues));
 
         this.position = new Float32Array([0, 0, 0]);
         this.rotation = new Float32Array([0, 0, 0]);
@@ -87,6 +87,21 @@ class GameObject {
             gl.uniformMatrix4fv(cameraUniform.pointer, false, renderInfo.camera);
             const worldUniform = this.getUniformByName("u_world");
             gl.uniformMatrix4fv(worldUniform.pointer, false, local);
+
+            const normalUniform = this.getUniformByName("u_normal");
+            if (normalUniform !== null) {
+                if (correct_normals) {
+                    const normal4 = glMatrix.mat4.create();
+                    glMatrix.mat4.invert(normal4, local);
+                    glMatrix.mat4.transpose(normal4, normal4);
+                    const normal3 = glMatrix.mat3.create();
+                    glMatrix.mat3.fromMat4(normal3, normal4);
+                    gl.uniformMatrix3fv(normalUniform.pointer, false, normal3);
+                }
+                else {
+                    gl.uniformMatrix3fv(normalUniform.pointer, false, glMatrix.mat3.create());
+                }
+            }
 
             for (let i = 0; i < this.uniformValues.length; i++) {
                 const uniformValue = this.uniformValues[i];

@@ -30,13 +30,14 @@ const LIT_COLOURED_VERTEX = `
     uniform mat4 u_world;
     uniform mat4 u_camera;
     uniform mat4 u_projection;
+    uniform mat3 u_normal;
 
     varying vec3 v_colour;
     varying vec3 v_normal;
 
     void main () {
         v_colour = a_colour;
-        v_normal = a_normal;
+        v_normal = u_normal * a_normal;
         gl_Position = u_projection * u_camera * u_world * vec4(a_position, 1.0);
     }
 `;
@@ -44,7 +45,7 @@ const LIT_COLOURED_VERTEX = `
 const LIT_COLOURED_FRAGMENT = `
     precision highp float;
 
-    const vec3 LIGHT_DIRECTION = normalize(vec3(1.0, 0.5, 0.25));
+    const vec3 LIGHT_DIRECTION = normalize(vec3(1.0, 1.0, 0.25));
 
     uniform vec4 u_colour;
 
@@ -57,6 +58,8 @@ const LIT_COLOURED_FRAGMENT = `
         gl_FragColor = vec4(diffuse, u_colour.a);
     }
 `;
+
+let correct_normals = false;
 
 function start () {
     // Setup context
@@ -76,70 +79,51 @@ function start () {
     const gridGeometry = generateGridGeometry(gl, 10.0, 10);
     const gridGameObject = new GameObject(gl, gridGeometry, BASIC_VERTEX, BASIC_FRAGMENT, gridUniformValues, false);
 
-    /*
-    // Cube A
-    const cubeUniformValuesA = [
-        { name: "u_colour", value: [1.0, 1.0, 1.0, 1.0] },
-    ];
-    const cubeGeometryA = generateCubeSolidGeometry(gl, true);
-    const cubeGameObjectA = new GameObject(gl, cubeGeometryA, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, cubeUniformValuesA, false);
-    cubeGameObjectA.position[1] = 0.5;
-    cubeGameObjectA.scale[0] = 2.0;
-    cubeGameObjectA.scale[1] = 1.1;
-    cubeGameObjectA.scale[2] = 2.0;
-    gridGameObject.children.push(cubeGameObjectA);
-    */
+    // Spheres
+    const sphereGeometry = generateSphereSolidGeometry(gl, 16, 32, false);
+
     const sphereUniformValuesA = [
         { name: "u_colour", value: [1.0, 1.0, 1.0, 1.0] },
     ];
-    const sphereGeometryA = generateSphereSolidGeometry(gl, 16, 32, false);
-    const sphereGameObjectA = new GameObject(gl, sphereGeometryA, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, sphereUniformValuesA, false);
+    const sphereGameObjectA = new GameObject(gl, sphereGeometry, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, sphereUniformValuesA, false);
     sphereGameObjectA.position[1] = 0.5;
     sphereGameObjectA.scale[0] = 1.5;
     sphereGameObjectA.scale[1] = 1.5;
     sphereGameObjectA.scale[2] = 1.5;
     gridGameObject.children.push(sphereGameObjectA);
 
-    // Cube B
+    const sphereUniformValuesB = [
+        { name: "u_colour", value: [1.0, 1.0, 1.0, 1.0] },
+    ];
+    const sphereGameObjectB = new GameObject(gl, sphereGeometry, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, sphereUniformValuesB, false);
+    sphereGameObjectB.position[0] = -2.0;
+    sphereGameObjectB.position[1] = 0.5;
+    sphereGameObjectB.scale[0] = 1.5;
+    sphereGameObjectB.scale[1] = 1.5;
+    sphereGameObjectB.scale[2] = 1.5;
+    gridGameObject.children.push(sphereGameObjectB);
+
+    const sphereUniformValuesC = [
+        { name: "u_colour", value: [1.0, 1.0, 1.0, 1.0] },
+    ];
+    const sphereGameObjectC = new GameObject(gl, sphereGeometry, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, sphereUniformValuesC, false);
+    sphereGameObjectC.position[0] = 2.0;
+    sphereGameObjectC.position[1] = 0.5;
+    sphereGameObjectC.scale[0] = 1.5;
+    sphereGameObjectC.scale[1] = 1.5;
+    sphereGameObjectC.scale[2] = 1.5;
+    gridGameObject.children.push(sphereGameObjectC);
+
+    // Cubes
+    /*
     const cubeUniformValuesB = [
         { name: "u_colour", value: [1.0, 0.0, 0.0, 1.0] },
     ];
     const cubeGeometryB = generateCubeSolidGeometry(gl, false);
     const cubeGameObjectB = new GameObject(gl, cubeGeometryB, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, cubeUniformValuesB, false);
-    cubeGameObjectB.position[0] = 2.0;
     cubeGameObjectB.position[1] = 0.5;
+    cubeGameObjectB.position[2] = -2.0;
     gridGameObject.children.push(cubeGameObjectB);
-
-    /*
-    // Cube C
-    const cubeUniformValuesC = [
-        { name: "u_colour", value: [0.0, 1.0, 0.0, 1.0] },
-    ];
-    const cubeGeometryC = generateCubeSolidGeometry(gl, true);
-    const cubeGameObjectC = new GameObject(gl, cubeGeometryC, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, cubeUniformValuesC, false);
-    cubeGameObjectC.position[0] = -1.5;
-    cubeGameObjectC.position[1] = 0.5;
-    gridGameObject.children.push(cubeGameObjectC);
-
-    // Cube D
-    const cubeUniformValuesD = [
-        { name: "u_colour", value: [0.0, 0.5, 0.5, 0.5] },
-    ];
-    const cubeGeometryD = generateCubeSolidGeometry(gl, false);
-    const cubeGameObjectD = new GameObject(gl, cubeGeometryD, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, cubeUniformValuesD, true);
-    cubeGameObjectD.position[1] = 0.5;
-    cubeGameObjectD.position[2] = -1.5;
-    gridGameObject.children.push(cubeGameObjectD);
-
-    // Cube E
-    const cubeUniformValuesE = [
-        { name: "u_colour", value: [0.5, 0.5, 0.0, 0.5] },
-    ];
-    const cubeGeometryE = generateCubeSolidGeometry(gl, false);
-    const cubeGameObjectE = new GameObject(gl, cubeGeometryE, LIT_COLOURED_VERTEX, LIT_COLOURED_FRAGMENT, cubeUniformValuesE, true);
-    cubeGameObjectE.position[1] = 0.5;
-    cubeGameObjectE.position[2] = 1.5;
-    gridGameObject.children.push(cubeGameObjectE);
     */
 
     // Setup
@@ -150,6 +134,11 @@ function start () {
     gl.enable(gl.DEPTH_TEST);
 
     const CAMERA_DIST = 3.0;
+
+    const update = function (t) {
+        //cubeGameObjectB.rotation[1] = t;
+        sphereGameObjectA.scale[1] = 2.5 + Math.sin(t * 0.75) * 1.5;
+    };
 
     const render = function (t) {
         Util.resizeCanvas(canvas);
@@ -163,16 +152,16 @@ function start () {
         glMatrix.mat4.lookAt(
             camera,
             [
-                Math.cos(t * 0.2) * CAMERA_DIST,
-                //Math.cos(t * 0.3) * CAMERA_DIST + 1.0,
+                //Math.cos(t * 0.2) * CAMERA_DIST,
+                //2.0,
+                //Math.sin(t * 0.2) * CAMERA_DIST,
+                0.0,
                 2.0,
-                Math.sin(t * 0.2) * CAMERA_DIST,
+                3.0,
             ],
             [0, 0, 0],
             [0, 1, 0]
         );
-
-        cubeGameObjectB.rotation[1] = t;
 
         const renderInfo = {
             projection: projection,
@@ -198,6 +187,7 @@ function start () {
         window.requestAnimationFrame(animate);
 
         const seconds = milliseconds / 1000;
+        update(seconds);
         render(seconds);
     };
 

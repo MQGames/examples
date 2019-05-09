@@ -81,6 +81,9 @@ const isFunction = newCheck(function (f) {
 const isArray = newCheck(function (a) {
     return Array.isArray(a);
 });
+const isFloat32Array = newCheck(function (a) {
+    return a instanceof Float32Array;
+});
 
 // Html
 const isElement = newCheck(function (e) {
@@ -101,7 +104,7 @@ const isShader = newCheck(function (s) {
     return s instanceof WebGLShader;
 });
 const isBuffer = newCheck(function (b) {
-    return s instanceof WebGLBuffer;
+    return b instanceof WebGLBuffer;
 });
 
 // glMatrix
