@@ -79,13 +79,13 @@ class GameObject {
         check(isContext(gl), isMat4(parentMatrix), isObject(renderInfo), isBoolean(transparentDrawing));
 
         // Compute matrix for this gameObject
-        const local = glMatrix.mat4.create();
-        glMatrix.mat4.fromTranslation(local, this.position);
-        glMatrix.mat4.rotateX(local, local, this.rotation[0]);
-        glMatrix.mat4.rotateY(local, local, this.rotation[1]);
-        glMatrix.mat4.rotateZ(local, local, this.rotation[2]);
-        glMatrix.mat4.scale(local, local, this.scale);
-        glMatrix.mat4.multiply(local, parentMatrix, local);
+        const world = glMatrix.mat4.create();
+        glMatrix.mat4.fromTranslation(world, this.position);
+        glMatrix.mat4.rotateX(world, world, this.rotation[0]);
+        glMatrix.mat4.rotateY(world, world, this.rotation[1]);
+        glMatrix.mat4.rotateZ(world, world, this.rotation[2]);
+        glMatrix.mat4.scale(world, world, this.scale);
+        glMatrix.mat4.multiply(world, parentMatrix, world);
 
         // Determine if we draw ourselves in this pass
         if (transparentDrawing === this.transparent) {
@@ -99,42 +99,45 @@ class GameObject {
                 const cameraUniform = this.getUniformByName("u_camera");
                 gl.uniformMatrix4fv(cameraUniform.pointer, false, renderInfo.camera);
                 const worldUniform = this.getUniformByName("u_world");
-                gl.uniformMatrix4fv(worldUniform.pointer, false, local);
+                gl.uniformMatrix4fv(worldUniform.pointer, false, world);
             }
 
             // Lighting
             const normalUniform = this.getUniformByName("u_normal");
             if (normalUniform !== null) {
                 // Normal matrix
-                if (correct_normals) {
-                    //const normal4 = glMatrix.mat4.create();
-                    //glMatrix.mat4.invert(normal4, local);
-                    //glMatrix.mat4.transpose(normal4, normal4);
-                    //const normal3 = glMatrix.mat3.create();
-                    //glMatrix.mat3.fromMat4(normal3, normal4);
-                    //const camera3 = glMatrix.mat3.create();
-                    //glMatrix.mat3.fromMat4(camera3, renderInfo.camera);
-                    //glMatrix.mat3.multiply(normal3, camera3, normal3);
-                    //gl.uniformMatrix3fv(normalUniform.pointer, false, normal3);
-                }
-                else {
-                    gl.uniformMatrix3fv(normalUniform.pointer, false, glMatrix.mat3.create());
+                {
+                    // Compute the inverse transpose. See:
+                    // https://paroj.github.io/gltut/Illumination/Tut09%20Normal%20Transformation.html
+                    // We don't need translation, so we use the top left 3x3 part of our matrix.
+                    const normal3 = glMatrix.mat3.create();
+                    glMatrix.mat3.fromMat4(normal3, world);
+                    glMatrix.mat3.invert(normal3, normal3);
+                    glMatrix.mat3.transpose(normal3, normal3);
+
+                    // We also want to have the camera rotation included in the normal matrix,
+                    // since this exaple does lighing in camera space.
+                    const camera3 = glMatrix.mat3.create();
+                    glMatrix.mat3.fromMat4(camera3, renderInfo.camera);
+                    glMatrix.mat3.multiply(normal3, camera3, normal3);
+
+                    gl.uniformMatrix3fv(normalUniform.pointer, false, normal3);
                 }
 
                 // Light uniforms
                 {
-                    //const lightDirectionUniform = this.getUniformByName("u_lightDirection");
-                    //if (lightDirectionUniform !== null) {
-                    //    gl.uniform3fv(lightDirectionUniform.pointer, renderInfo.lightDirection);
-                    //}
-                    //const lightColourUniform = this.getUniformByName("u_lightColour");
-                    //if (lightColourUniform !== null) {
-                    //    gl.uniform3fv(lightColourUniform.pointer, renderInfo.lightColour);
-                    //}
-                    //const ambientLightUniform = this.getUniformByName("u_ambientLight");
-                    //if (ambientLightUniform !== null) {
-                    //    gl.uniform3fv(ambientLightUniform.pointer, renderInfo.ambientLight);
-                    //}
+                    const lightDirectionUniform = this.getUniformByName("u_lightDirection");
+                    if (lightDirectionUniform !== null) {
+                        gl.uniform3fv(lightDirectionUniform.pointer, renderInfo.lightDirection);
+                    }
+                    const lightColourUniform = this.getUniformByName("u_lightColour");
+                    if (lightColourUniform !== null) {
+                        gl.uniform3fv(lightColourUniform.pointer, renderInfo.lightColour);
+                    }
+                    const ambientLightUniform = this.getUniformByName("u_ambientLight");
+                    if (ambientLightUniform !== null) {
+                        gl.uniform3fv(ambientLightUniform.pointer, renderInfo.ambientLight);
+                    }
                 }
             }
 
@@ -143,6 +146,7 @@ class GameObject {
                 const uniformValue = this.uniformValues[i];
                 const uniform = this.getUniformByName(uniformValue.name);
                 if (uniform !== null) {
+                    // We need to switch on the type of the uniform, because we call a different function for each type.
                     switch (uniform.type) {
                         case gl.FLOAT: gl.uniform1f(uniform.pointer, uniformValue.value); break;
                         case gl.FLOAT_VEC2: gl.uniform2fv(uniform.pointer, uniformValue.value); break;
@@ -184,7 +188,7 @@ class GameObject {
         // Draw children
         for (let i = 0; i < this.children.length; i++) {
             const child = this.children[i];
-            child.draw(gl, local, renderInfo, transparentDrawing);
+            child.draw(gl, world, renderInfo, transparentDrawing);
         }
     }
 }

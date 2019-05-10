@@ -369,56 +369,56 @@ function generateSphereSolidGeometry (gl, stepsLat, stepsLong, randomColours) {
     return new Geometry(gl.TRIANGLES, 0, positions.length / 3, geometryAttributes);
 }
 
-function generateNormals (gl, inputGeometry) {
-    check(isContext(gl), isGeometry(inputGeometry));
-
-    const numVerticies = inputGeometry.numVerticies * 2;
-    const positions = new Float32Array(numVerticies * 3);
-    const normals = new Float32Array(numVerticies * 3);
-
-    console.log(inputGeometry);
-    console.log(numVerticies);
-
-    const inputPositionBuffer = inputGeometry.getBufferByAttributeName("a_position");
-    const inputNormalBuffer = inputGeometry.getBufferByAttributeName("a_normal");
-    for (let i = 0; i < inputGeometry.numVerticies; i++) {
-        const positionIndex = i * 3;
-        const normalIndex = i * 3;
-
-        // A
-        positions[positionIndex * 2 + 0] = inputPositionBuffer.array[positionIndex + 0];
-        positions[positionIndex * 2 + 1] = inputPositionBuffer.array[positionIndex + 1];
-        positions[positionIndex * 2 + 2] = inputPositionBuffer.array[positionIndex + 2];
-        normals[normalIndex * 2 + 0] = 0.0;
-        normals[normalIndex * 2 + 1] = 0.0;
-        normals[normalIndex * 2 + 2] = 0.0;
-        
-        // B
-        positions[positionIndex * 2 + 3] = inputPositionBuffer.array[positionIndex + 0];
-        positions[positionIndex * 2 + 4] = inputPositionBuffer.array[positionIndex + 1];
-        positions[positionIndex * 2 + 5] = inputPositionBuffer.array[positionIndex + 2];
-        normals[normalIndex * 2 + 3] = inputNormalBuffer.array[normalIndex + 0];
-        normals[normalIndex * 2 + 4] = inputNormalBuffer.array[normalIndex + 1];
-        normals[normalIndex * 2 + 5] = inputNormalBuffer.array[normalIndex + 2];
-    }
-
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
-    const normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
-
-    const geometryAttributes = [
-        new GeometryAttribute("a_position", positionBuffer, positions, 3, gl.FLOAT, false, 0, 0),
-        new GeometryAttribute("a_normal", normalBuffer, normals, 3, gl.FLOAT, true, 0, 0),
-    ];
-    return new Geometry(gl.LINES, 0, positions.length / 3, geometryAttributes);
-};
-
 function addNormalsVisualization (gl, inputGameObject) {
     check(isContext(gl), isGameObject(inputGameObject));
+
+    const generateNormals = function (gl, inputGeometry) {
+        check(isContext(gl), isGeometry(inputGeometry));
+
+        const numVerticies = inputGeometry.numVerticies * 2;
+        const positions = new Float32Array(numVerticies * 3);
+        const normals = new Float32Array(numVerticies * 3);
+
+        console.log(inputGeometry);
+        console.log(numVerticies);
+
+        const inputPositionBuffer = inputGeometry.getBufferByAttributeName("a_position");
+        const inputNormalBuffer = inputGeometry.getBufferByAttributeName("a_normal");
+        for (let i = 0; i < inputGeometry.numVerticies; i++) {
+            const positionIndex = i * 3;
+            const normalIndex = i * 3;
+
+            // A
+            positions[positionIndex * 2 + 0] = inputPositionBuffer.array[positionIndex + 0];
+            positions[positionIndex * 2 + 1] = inputPositionBuffer.array[positionIndex + 1];
+            positions[positionIndex * 2 + 2] = inputPositionBuffer.array[positionIndex + 2];
+            normals[normalIndex * 2 + 0] = 0.0;
+            normals[normalIndex * 2 + 1] = 0.0;
+            normals[normalIndex * 2 + 2] = 0.0;
+            
+            // B
+            positions[positionIndex * 2 + 3] = inputPositionBuffer.array[positionIndex + 0];
+            positions[positionIndex * 2 + 4] = inputPositionBuffer.array[positionIndex + 1];
+            positions[positionIndex * 2 + 5] = inputPositionBuffer.array[positionIndex + 2];
+            normals[normalIndex * 2 + 3] = inputNormalBuffer.array[normalIndex + 0];
+            normals[normalIndex * 2 + 4] = inputNormalBuffer.array[normalIndex + 1];
+            normals[normalIndex * 2 + 5] = inputNormalBuffer.array[normalIndex + 2];
+        }
+
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+        const normalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+
+        const geometryAttributes = [
+            new GeometryAttribute("a_position", positionBuffer, positions, 3, gl.FLOAT, false, 0, 0),
+            new GeometryAttribute("a_normal", normalBuffer, normals, 3, gl.FLOAT, true, 0, 0),
+        ];
+        return new Geometry(gl.LINES, 0, positions.length / 3, geometryAttributes);
+    };
 
     const NORMAL_VERTEX = `
         const float NORMAL_SCALING = 0.2;
@@ -432,8 +432,9 @@ function addNormalsVisualization (gl, inputGameObject) {
         uniform mat3 u_normal;
 
         void main () {
-            vec3 rotatedNormal = u_normal * a_normal;
-            gl_Position = u_projection * u_camera * u_world * vec4(a_position + (rotatedNormal * NORMAL_SCALING), 1.0);
+            vec3 rotatedNormal = (u_normal * a_normal) * NORMAL_SCALING;
+            vec4 cameraPosition = u_camera * u_world * vec4(a_position, 1.0);
+            gl_Position = u_projection * (cameraPosition + vec4(rotatedNormal, 0.0));
         }
     `;
 
