@@ -32,7 +32,7 @@ varying vec3 v_normal;
 uniform sampler2D u_diffuse;
 
 const vec3 LIGHT_DIRECTION = normalize(vec3(0.5, 1.0, 0.1));
-const vec3 AMBIENT_COLOUR = vec3(0.3, 0.3, 0.3);
+const vec3 AMBIENT_COLOUR = vec3(0.2, 0.2, 0.2);
 
 void main() {
     vec3 normal = normalize(v_normal);
@@ -138,8 +138,8 @@ function main() {
 
     // enable depth testing & backface culling
     gl.enable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
+    //gl.enable(gl.CULL_FACE);
+    //gl.cullFace(gl.BACK);
 
     // create GLSL shaders, upload the GLSL source, compile the shaders
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
@@ -177,14 +177,6 @@ function main() {
         | \ a | 
         | b \ |
         o-----o
-
-        ||
-
-        o-----o
-          \ a | 
-            \ |
-             o
-
     */
 
     for (let x = 0; x < WIDTH; x++) {
@@ -194,8 +186,8 @@ function main() {
             {
                // Top A
                 points.push(x, height, z);
-                points.push(x + 1, height, z + 1);
                 points.push(x + 1, height, z);
+                points.push(x + 1, height, z + 1);
                 uvs.push(0, 0);
                 uvs.push(1, 0);
                 uvs.push(1, 1);
@@ -215,93 +207,101 @@ function main() {
                 normals.push(0, 1, 0);
             }
 
-            // Right A
-            points.push(x + 1, height, z);
-            points.push(x + 1, 0, z);
-            points.push(x + 1, 0, z + 1);
-            uvs.push(1, height);
-            uvs.push(1, 0);
-            uvs.push(0, 0);
-            normals.push(1, 0, 0);
-            normals.push(1, 0, 0);
-            normals.push(1, 0, 0);
+            {
+                // Right A
+                points.push(x + 1, height, z);
+                points.push(x + 1, 0, z);
+                points.push(x + 1, 0, z + 1);
+                uvs.push(1, height);
+                uvs.push(1, 0);
+                uvs.push(0, 0);
+                normals.push(1, 0, 0);
+                normals.push(1, 0, 0);
+                normals.push(1, 0, 0);
 
-            // Right A
-            points.push(x + 1, height, z + 1);
-            points.push(x + 1, height, z);
-            points.push(x + 1, 0, z + 1);
-            uvs.push(0, height);
-            uvs.push(1, height);
-            uvs.push(0, 0);
-            normals.push(1, 0, 0);
-            normals.push(1, 0, 0);
-            normals.push(1, 0, 0);
+                // Right A
+                points.push(x + 1, height, z + 1);
+                points.push(x + 1, height, z);
+                points.push(x + 1, 0, z + 1);
+                uvs.push(0, height);
+                uvs.push(1, height);
+                uvs.push(0, 0);
+                normals.push(1, 0, 0);
+                normals.push(1, 0, 0);
+                normals.push(1, 0, 0);
+            }
 
-            // Left A
-            points.push(x, height, z);
-            points.push(x, 0, z);
-            points.push(x, 0, z + 1);
-            uvs.push(1, height);
-            uvs.push(1, 0);
-            uvs.push(0, 0);
-            normals.push(-1, 0, 0);
-            normals.push(-1, 0, 0);
-            normals.push(-1, 0, 0);
+            {
+                // Left A
+                points.push(x, height, z);
+                points.push(x, 0, z);
+                points.push(x, 0, z + 1);
+                uvs.push(1, height);
+                uvs.push(1, 0);
+                uvs.push(0, 0);
+                normals.push(-1, 0, 0);
+                normals.push(-1, 0, 0);
+                normals.push(-1, 0, 0);
 
-            // Left B
-            points.push(x, height, z + 1);
-            points.push(x, height, z);
-            points.push(x, 0, z + 1);
-            uvs.push(0, height);
-            uvs.push(1, height);
-            uvs.push(0, 0);
-            normals.push(-1, 0, 0);
-            normals.push(-1, 0, 0);
-            normals.push(-1, 0, 0);
+                // Left B
+                points.push(x, height, z + 1);
+                points.push(x, height, z);
+                points.push(x, 0, z + 1);
+                uvs.push(0, height);
+                uvs.push(1, height);
+                uvs.push(0, 0);
+                normals.push(-1, 0, 0);
+                normals.push(-1, 0, 0);
+                normals.push(-1, 0, 0);
+            }
 
-            // Forward A
-            points.push(x, height, z + 1);
-            points.push(x, 0, z + 1);
-            points.push(x + 1, 0, z + 1);
-            uvs.push(1, height);
-            uvs.push(1, 0);
-            uvs.push(0, 0);
-            normals.push(0, 0, 1);
-            normals.push(0, 0, 1);
-            normals.push(0, 0, 1);
+            {
+                // Forward A
+                points.push(x, height, z + 1);
+                points.push(x, 0, z + 1);
+                points.push(x + 1, 0, z + 1);
+                uvs.push(1, height);
+                uvs.push(1, 0);
+                uvs.push(0, 0);
+                normals.push(0, 0, 1);
+                normals.push(0, 0, 1);
+                normals.push(0, 0, 1);
 
-            // Forward B
-            points.push(x + 1, height, z + 1);
-            points.push(x, height, z + 1);
-            points.push(x + 1, 0, z + 1);
-            uvs.push(0, height);
-            uvs.push(1, height);
-            uvs.push(0, 0);
-            normals.push(0, 0, 1);
-            normals.push(0, 0, 1);
-            normals.push(0, 0, 1);
+                // Forward B
+                points.push(x + 1, height, z + 1);
+                points.push(x, height, z + 1);
+                points.push(x + 1, 0, z + 1);
+                uvs.push(0, height);
+                uvs.push(1, height);
+                uvs.push(0, 0);
+                normals.push(0, 0, 1);
+                normals.push(0, 0, 1);
+                normals.push(0, 0, 1);
+            }
 
-            // Back A
-            points.push(x, height, z);
-            points.push(x, 0, z);
-            points.push(x + 1, 0, z);
-            uvs.push(1, height);
-            uvs.push(1, 0);
-            uvs.push(0, 0);
-            normals.push(0, 0, -1);
-            normals.push(0, 0, -1);
-            normals.push(0, 0, -1);
+            {
+                // Back A
+                points.push(x, height, z);
+                points.push(x, 0, z);
+                points.push(x + 1, 0, z);
+                uvs.push(1, height);
+                uvs.push(1, 0);
+                uvs.push(0, 0);
+                normals.push(0, 0, -1);
+                normals.push(0, 0, -1);
+                normals.push(0, 0, -1);
 
-            // Back B
-            points.push(x + 1, height, z);
-            points.push(x, height, z);
-            points.push(x + 1, 0, z);
-            uvs.push(0, height);
-            uvs.push(1, height);
-            uvs.push(0, 0);
-            normals.push(0, 0, -1);
-            normals.push(0, 0, -1);
-            normals.push(0, 0, -1);
+                // Back B
+                points.push(x + 1, height, z);
+                points.push(x, height, z);
+                points.push(x + 1, 0, z);
+                uvs.push(0, height);
+                uvs.push(1, height);
+                uvs.push(0, 0);
+                normals.push(0, 0, -1);
+                normals.push(0, 0, -1);
+                normals.push(0, 0, -1);
+            }
         }
     }
 
@@ -323,7 +323,7 @@ function main() {
 
     const cameraRotation = [0,0,0];
     const cameraRotationSpeed = 2 * Math.PI / 10; // radians per second 
-    let cameraDistance = 2;
+    let cameraDistance = 6;
     const cameraZoomSpeed = 1; // distance per second 
 
     // update objects in the scene
@@ -387,8 +387,8 @@ function main() {
             glMatrix.vec3.rotateY(cameraPosition, cameraPosition, [0,0,0], cameraRotation[1]);
             gl.uniform3fv(shader["u_cameraPosition"], cameraPosition);
 
-            const target = [5,5, HEIGHT / 2];
-            const up = [0,1,0];
+            const target = [0, 0, 0];
+            const up = [0, 1, 0];
             glMatrix.mat4.lookAt(viewMatrix, cameraPosition, target, up);
             gl.uniformMatrix4fv(shader["u_viewMatrix"], false, viewMatrix);
         }
@@ -396,6 +396,7 @@ function main() {
         // set up world matrix
         {            
             glMatrix.mat4.identity(worldMatrix);
+            glMatrix.mat4.translate(worldMatrix, worldMatrix, [-WIDTH / 2.0, -HEIGHT / 2.0, -DEPTH / 2.0]);
             gl.uniformMatrix4fv(shader["u_worldMatrix"], false, worldMatrix);
 
             glMatrix.mat3.normalFromMat4(normalMatrix, worldMatrix);
