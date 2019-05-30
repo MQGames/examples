@@ -1,6 +1,6 @@
 "use strict";
 
-const DEBUG = true;
+const DEBUG = false;
 
 const newCheck = (DEBUG) ? function (f) {
     if (typeof f !== "function") {
