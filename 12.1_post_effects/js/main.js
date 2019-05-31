@@ -37,20 +37,16 @@ const POST_EFFECT_FRAGMENT_SOURCE = `
 
     varying vec2 v_uv;
 
-    const float HALF_BLUR_SIZE = 32.0;
+    const float HALF_BLUR_SIZE = 16.0;
     const float SIGMA = HALF_BLUR_SIZE * 0.5;
     const float BLUR_BOOST = 4.0;
 
     void main() {
-        gl_FragColor = texture2D(u_texture, v_uv);
+        //gl_FragColor = texture2D(u_texture, v_uv);
 
-        /*
         // Wavy
-        vec2 uv = vec2(v_uv.x + sin((u_seconds + v_uv.y) * 3.0) * 0.1, v_uv.y);
-        gl_FragColor = texture2D(u_texture, uv);
-        */
+        vec2 wavy_uv = vec2(v_uv.x + sin((u_seconds + v_uv.y * 1.0) * 3.0) * 0.1, v_uv.y);
 
-        /*
         // Blur
         // Taken from:
         // https://gamedev.stackexchange.com/questions/68771/glsl-blur-shader-algorithm-results-in-a-lumpy-blur
@@ -60,16 +56,17 @@ const POST_EFFECT_FRAGMENT_SOURCE = `
         for (float x = -HALF_BLUR_SIZE; x < HALF_BLUR_SIZE; x += 1.0) {
             for (float y = -HALF_BLUR_SIZE; y < HALF_BLUR_SIZE; y += 1.0) {
                 vec2 offset = vec2(x, y);
-                vec2 uv = v_uv + (offset * offsetSize);
+                vec2 uv = wavy_uv + (offset * offsetSize);
                 float weight = exp(-(x*x + y*y) / (2.0 * SIGMA * SIGMA));
                 blurAccumulation += texture2D(u_texture, uv) * weight;
                 totalWeight += weight;
             }
         }
-        gl_FragColor = (blurAccumulation * BLUR_BOOST / totalWeight) + texture2D(u_texture, v_uv);
-        */
+        gl_FragColor = (blurAccumulation * BLUR_BOOST / totalWeight) + texture2D(u_texture, wavy_uv);
     }
 `;
+
+const RENDER_SCALE = 0.5;
 
 function start () {
     // Setup context
@@ -136,7 +133,7 @@ function start () {
     // Create a texture to render to.
     // Taken from:
     // https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
-    Util.resizeCanvas(canvas, 0.2);
+    Util.resizeCanvas(canvas, RENDER_SCALE);
     const targetTextureWidth = canvas.width;
     const targetTextureHeight = canvas.height;
     const targetTexture = gl.createTexture();
@@ -176,7 +173,7 @@ function start () {
     const render = function (seconds) {
         check(isNumber(seconds));
 
-        Util.resizeCanvas(canvas, 0.2);
+        Util.resizeCanvas(canvas, RENDER_SCALE);
 
         // Render to texture.
         {
